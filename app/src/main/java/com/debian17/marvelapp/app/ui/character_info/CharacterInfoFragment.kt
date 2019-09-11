@@ -1,21 +1,19 @@
 package com.debian17.marvelapp.app.ui.character_info
 
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.debian17.marvelapp.App
-
 import com.debian17.marvelapp.R
 import com.debian17.marvelapp.app.base.error.ErrorHandler
 import com.debian17.marvelapp.app.base.hide
 import com.debian17.marvelapp.app.base.longSnackBar
 import com.debian17.marvelapp.app.base.show
 import com.debian17.marvelapp.app.base.ui.BaseFragment
-import com.debian17.marvelapp.app.ui.characters.CharactersFragment
 import kotlinx.android.synthetic.main.character_info_fragment.*
 
 class CharacterInfoFragment : BaseFragment() {
@@ -56,15 +54,15 @@ class CharacterInfoFragment : BaseFragment() {
         val characterName = arguments!!.getString(CHARACTER_NAME_KEY)
         val imageUrl = arguments!!.getString(IMAGE_URL_KEY)
 
+        loadCharacterAvatar(imageUrl)
+        tvCharacterName.text = characterName
+
         val dataComponent = (activity!!.application as App).provideDataComponent()
         val characterDataSource = dataComponent.provideCharacterRepository()
         val viewModelFactory = CharacterInfoViewModel.Factory(characterId, characterDataSource)
 
         viewModel = ViewModelProviders.of(this, viewModelFactory)
             .get(CharacterInfoViewModel::class.java)
-
-        toolbar.title = characterName ?: getString(R.string.description_not_found)
-        loadCharacterAvatar(imageUrl)
 
         viewModel.getLoading().observe(viewLifecycleOwner, Observer {
             if (it) {

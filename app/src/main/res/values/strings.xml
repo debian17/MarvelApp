@@ -8,4 +8,8 @@
 
     <string name="no_network_connection">Check your internet connection</string>
 
+    <string name="choose_character">Click to character to view info</string>
+
+    <string name="press_again_to_exit">Press again to exit</string>
+
 </resources>

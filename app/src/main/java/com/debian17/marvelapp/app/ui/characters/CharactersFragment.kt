@@ -1,12 +1,13 @@
 package com.debian17.marvelapp.app.ui.characters
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.debian17.marvelapp.App
 import com.debian17.marvelapp.R
 import com.debian17.marvelapp.app.base.error.ErrorHandler
@@ -24,36 +25,44 @@ import kotlinx.android.synthetic.main.characters_fragment.*
 class CharactersFragment : BaseFragment() {
 
     companion object {
-        private const val SPAN_COUNT = 2
+        private const val DEFAULT_CHARACTER_ID = -1
+        private const val CHARACTER_ADDED_ID_KEY = "characterAddedIdKey"
         const val TAG = "CharactersFragmentTag"
         fun newInstance() = CharactersFragment()
     }
 
+    private var characterAddedId = DEFAULT_CHARACTER_ID
+
     private lateinit var viewModel: CharactersViewModel
     private lateinit var adapter: CharactersAdapter
 
-    private val spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-        override fun getSpanSize(position: Int): Int {
-            val viewType = adapter.getItemViewType(position)
-            if (viewType == R.layout.item_character) {
-                return 1
-            } else {
-                return 2
-            }
-        }
-    }
-
     private val characterListener = object : CharactersAdapter.CharacterListener {
         override fun onCharacterClick(character: Character) {
-
+            val orientation = resources.configuration.orientation
+            val mainNavigator = (activity!! as MainNavigatorProvider).provideMainNavigator()
             val characterInfoFragment = CharacterInfoFragment.newInstance(
                 character.id,
                 character.name,
                 character.image?.getFullPath()
             )
-
-            val mainNavigator = (activity!! as MainNavigatorProvider).provideMainNavigator()
-            mainNavigator.addFragment(characterInfoFragment, true, CharacterInfoFragment.TAG)
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                mainNavigator.addFragment(
+                    characterInfoFragment,
+                    R.id.flMainContainer,
+                    true,
+                    CharacterInfoFragment.TAG
+                )
+            } else {
+                if (characterAddedId != character.id) {
+                    characterAddedId = character.id
+                    mainNavigator.replaceFragment(
+                        characterInfoFragment,
+                        R.id.flCharacterInfoContainer,
+                        false,
+                        CharacterInfoFragment.TAG
+                    )
+                }
+            }
         }
     }
 
@@ -66,6 +75,11 @@ class CharactersFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        if (savedInstanceState != null) {
+            characterAddedId =
+                savedInstanceState.getInt(CHARACTER_ADDED_ID_KEY, DEFAULT_CHARACTER_ID)
+        }
 
         setupRecyclerView()
 
@@ -98,11 +112,8 @@ class CharactersFragment : BaseFragment() {
         val characterDiffCallback = CharacterDiffCallback()
         adapter = CharactersAdapter(context!!, characterDiffCallback, characterListener)
 
-        val layoutManager = GridLayoutManager(context, SPAN_COUNT).apply {
-            spanSizeLookup = this@CharactersFragment.spanSizeLookup
-        }
         rvCharacters.apply {
-            this.layoutManager = layoutManager
+            this.layoutManager = LinearLayoutManager(context!!)
             this.adapter = this@CharactersFragment.adapter
         }
     }
@@ -115,19 +126,35 @@ class CharactersFragment : BaseFragment() {
         }
     }
 
+    @Suppress("PLUGIN_WARNING")
     private fun handleLoading(isLoading: Boolean) {
+        val orientation = resources.configuration.orientation
         if (isLoading) {
             pbLoading.show()
             rvCharacters.hide()
+
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                flCharacterInfoContainer.hide()
+            }
+
         } else {
             rvCharacters.show()
             pbLoading.hide()
+
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                flCharacterInfoContainer.show()
+            }
         }
     }
 
     private fun handleError(throwable: Throwable) {
         val errorHandler = ErrorHandler(context!!)
         view?.longSnackBar(errorHandler.getErrorMessage(throwable))
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(CHARACTER_ADDED_ID_KEY, characterAddedId)
     }
 
 }

@@ -15,11 +15,16 @@ class MainActivity : BaseActivity(), MainNavigatorProvider {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mainNavigator = MainNavigator(supportFragmentManager, R.id.flMainContainer)
+        mainNavigator = MainNavigator(supportFragmentManager)
 
         if (savedInstanceState == null) {
             val charactersFragment = CharactersFragment.newInstance()
-            mainNavigator.addFragment(charactersFragment, false, CharactersFragment.TAG)
+            mainNavigator.addFragment(
+                charactersFragment,
+                R.id.flMainContainer,
+                false,
+                CharactersFragment.TAG
+            )
         }
 
     }
