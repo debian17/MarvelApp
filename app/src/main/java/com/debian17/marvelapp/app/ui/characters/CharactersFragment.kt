@@ -83,7 +83,7 @@ class CharactersFragment : BaseFragment() {
 
         setupRecyclerView()
 
-        val dataComponent = (activity!!.applicationContext as App).provideDataComponent()
+        val dataComponent = (activity!!.application as App).provideDataComponent()
         val characterDataSource = dataComponent.provideCharacterRepository()
         val viewModelFactory = CharactersViewModel.Factory(characterDataSource)
 

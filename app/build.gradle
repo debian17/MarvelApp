@@ -35,7 +35,7 @@ android {
     }
 }
 
-def lifecycle = '2.0.0'
+def lifecycle = '2.1.0'
 def retrofit = '2.6.1'
 def dagger = '2.24'
 def rxjava = '2.2.12'
